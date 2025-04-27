@@ -1,0 +1,16 @@
+housecast/
+├── data/
+│   ├── raw/        # 원본 데이터 저장
+│   ├── processed/  # 전처리된 데이터 저장
+├── notebooks/      # EDA 및 실험용 주피터 노트북
+├── models/         # 학습된 모델 저장
+├── src/            # Python 소스 코드
+│   ├── data/       # 데이터 로딩, 정리 관련 모듈
+│   ├── features/   # 피처 엔지니어링 모듈
+│   ├── models/     # 모델 학습, 예측 모듈
+│   └── visualization/ # 시각화 관련 모듈
+├── reports/        # 분석 리포트 및 결과 시각화 파일
+├── README.md       # 프로젝트 소개 문서
+├── requirements.txt# 필요 패키지 명시 파일
+├── .gitignore      # Git 관리 제외 파일 설정
+└── TODO.md         # 업데이트 및 할 일 관리 문서

@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Visual Studio Code
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+*.env
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Vim
+*.swp
+*.swo
+*.swn
+
+# Models and large files
+*.h5
+*.pkl
+
+# Prophet, pystan, cmdstanpy build caches (optional)
+.cmdstanpy/
+
+# IDEs
+.idea/
