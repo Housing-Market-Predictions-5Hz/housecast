@@ -14,19 +14,31 @@ Housecast는 데이터 분석과 머신러닝 기법을 활용하여
 housecast/
 ├── data/
 │   ├── raw/          # 원본 데이터 저장
+│   │   └── empty.txt # Git 폴더 추적용 빈 파일
 │   ├── processed/    # 전처리된 데이터 저장
-├── notebooks/        # EDA 및 모델 실험용 노트북
-├── models/           # 학습된 모델 파일 저장
+│   │   └── empty.txt # Git 폴더 추적용 빈 파일
+├── models/
+│   └── empty.txt     # 학습된 모델 저장 폴더
+├── reports/
+│   └── empty.txt     # 분석 리포트 저장 폴더
+├── notebooks/
+│   └── eda_template.ipynb  # 탐색적 데이터 분석(EDA) 템플릿
 ├── src/
-│   ├── data/         # 데이터 로딩, 정리 관련 모듈
-│   ├── features/     # 특성 엔지니어링 모듈
-│   ├── models/       # 모델 학습 및 예측 모듈
-│   └── visualization/ # 시각화 관련 모듈
-├── reports/          # 분석 결과 및 시각화 저장
-├── README.md         # 프로젝트 소개 문서
-├── requirements.txt  # 프로젝트 의존 패키지 목록
-├── .gitignore        # Git 관리 제외 파일 목록
-└── TODO.md           # 개발 및 업데이트 할 일 관리
+│   ├── data/
+│   │   └── data_loader.py
+│   ├── features/
+│   │   └── feature_engineering.py
+│   ├── models/
+│   │   └── model_trainer.py
+│   └── visualization/
+│       └── plot_functions.py
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── TODO.md
+└── .github/
+    ├── PULL_REQUEST_TEMPLATE.md
+    └── ISSUE_TEMPLATE.md
 ```
 
 ---
@@ -34,7 +46,7 @@ housecast/
 ## 🚀 시작하는 방법
 1. 저장소를 클론합니다:
    ```bash
-   git clone https://github.com/your-org/housecast.git
+   git clone https://github.com/Housing-Market-Predictions-5Hz/housecast.git
    cd housecast
    ```
 
@@ -43,7 +55,7 @@ housecast/
    pip install -r requirements.txt
    ```
 
-3. 노트북을 실행하거나, src 코드를 통해 데이터 분석을 시작하세요!
+3. 노트북을 실행하거나, src 모듈을 활용하여 데이터 분석을 시작하세요!
 
 ---
 
@@ -51,7 +63,29 @@ housecast/
 - 데이터 로딩 및 전처리
 - 특성(피처) 엔지니어링
 - 머신러닝 모델 학습 및 평가
-- 결과 시각화 및 리포트 생성
+- 시각화 및 리포트 생성
+- 다양한 환경(macOS, Windows, Python 등) 대응을 위한 최적화 설정
+
+---
+
+## 🎯 프로젝트 목표 (Project Goals)
+- 데이터 기반 주택 가격 예측 모델 개발
+- 다양한 머신러닝 알고리즘 성능 비교
+- 설명 가능한 모델(Explainable AI, SHAP 등) 구축
+- 결과를 기반으로 투자/정책 인사이트 도출
+- 프로덕션 배포(모델 API 서비스)까지 이어지는 전체 파이프라인 구축
+
+---
+
+## 🛣️ 로드맵 (Roadmap)
+- [x] 프로젝트 초기 셋업 및 폴더 구조 정리
+- [x] 기본 데이터 로딩 및 EDA 템플릿 제작
+- [ ] 다양한 피처 엔지니어링 기법 적용
+- [ ] 머신러닝 모델 비교 (예: XGBoost, LightGBM, RandomForest)
+- [ ] 성능 최적화 및 하이퍼파라미터 튜닝
+- [ ] SHAP 기반 피처 중요도 해석
+- [ ] 모델 API 서버 배포 (FastAPI 또는 Flask)
+- [ ] 배포 후 모니터링 및 리포트 자동화
 
 ---
 
@@ -80,7 +114,6 @@ train_model(df, target_column='price', model_save_path='models/house_price_model
 ---
 
 ## 📚 데이터셋 출처 (Data Sources)
-- 
-- 기타 공개 부동산 데이터 소스 활용 가능
+- 기타 공개 부동산 데이터 소스 활용
 
 ---
