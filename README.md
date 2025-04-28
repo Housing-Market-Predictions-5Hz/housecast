@@ -4,7 +4,7 @@
 ---
 
 ## 📖 프로젝트 소개
-Housecast는 데이터 분석과 머신러닝 기법을 활용하여
+Housecast는 데이터 분석과 머신러닝 기법을 활용하여  
 주택 시장의 트렌드와 주택 가격을 예측하는 프로젝트입니다.
 
 ---
@@ -32,13 +32,15 @@ housecast/
 │   │   └── model_trainer.py
 │   └── visualization/
 │       └── plot_functions.py
+├── .github/
+│   ├── workflows/
+│   │   └── python-lint-test.yml
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── ISSUE_TEMPLATE.md
 ├── README.md
 ├── requirements.txt
-├── .gitignore
 ├── TODO.md
-└── .github/
-    ├── PULL_REQUEST_TEMPLATE.md
-    └── ISSUE_TEMPLATE.md
+└── branch-protection-rule-extended.json
 ```
 
 ---
@@ -55,7 +57,11 @@ housecast/
    pip install -r requirements.txt
    ```
 
-3. 노트북을 실행하거나, src 모듈을 활용하여 데이터 분석을 시작하세요!
+3. 개발 워크플로우를 확인합니다:
+   - PR을 작성하면 자동으로 Python 코드 스타일 검사(Lint)와 테스트(Pytest)가 실행됩니다.
+   - 모든 PR은 **2명 이상 승인 + 테스트 통과**해야 `main`에 Merge할 수 있습니다.
+
+4. 노트북을 실행하거나, `src/` 모듈을 활용하여 데이터 분석을 시작하세요!
 
 ---
 
@@ -64,7 +70,8 @@ housecast/
 - 특성(피처) 엔지니어링
 - 머신러닝 모델 학습 및 평가
 - 시각화 및 리포트 생성
-- 다양한 환경(macOS, Windows, Python 등) 대응을 위한 최적화 설정
+- GitHub Actions 기반 코드 품질 관리 (Lint + Test)
+- 안전한 GitHub 협업 환경 구축 (Branch Protection Rules 적용)
 
 ---
 
@@ -80,6 +87,7 @@ housecast/
 ## 🛣️ 로드맵 (Roadmap)
 - [x] 프로젝트 초기 셋업 및 폴더 구조 정리
 - [x] 기본 데이터 로딩 및 EDA 템플릿 제작
+- [x] GitHub 협업 규칙 및 워크플로우 구축
 - [ ] 다양한 피처 엔지니어링 기법 적용
 - [ ] 머신러닝 모델 비교 (예: XGBoost, LightGBM, RandomForest)
 - [ ] 성능 최적화 및 하이퍼파라미터 튜닝
@@ -115,5 +123,14 @@ train_model(df, target_column='price', model_save_path='models/house_price_model
 
 ## 📚 데이터셋 출처 (Data Sources)
 - 기타 공개 부동산 데이터 소스 활용
+
+---
+
+## 🔥 추가 안내: GitHub 협업 규칙
+- 모든 작업은 feature 브랜치를 생성한 후 진행합니다.
+- PR 작성 시 자동으로 Lint 및 Test가 실행됩니다.
+- PR은 반드시 **2명 이상 승인**을 받아야 Merge할 수 있습니다.
+- CI 테스트를 통과하지 못하면 Merge할 수 없습니다.
+- Branch Protection Rule이 적용되어 있어 main 브랜치를 안전하게 보호합니다.
 
 ---
