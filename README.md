@@ -14,13 +14,13 @@ Housecast는 데이터 분석과 머신러닝 기법을 활용하여
 housecast/
 ├── data/
 │   ├── raw/          # 원본 데이터 저장
-│   │   └── empty.txt # Git 폴더 추적용 빈 파일
+│   │   └── empty2.txt # Git 폴더 추적용 빈 파일
 │   ├── processed/    # 전처리된 데이터 저장
 │   │   └── empty.txt # Git 폴더 추적용 빈 파일
 ├── models/
-│   └── empty.txt     # 학습된 모델 저장 폴더
+│   └── empty3.txt     # 학습된 모델 저장 폴더
 ├── reports/
-│   └── empty.txt     # 분석 리포트 저장 폴더
+│   └── empty4.txt     # 분석 리포트 저장 폴더
 ├── notebooks/
 │   └── eda_template.ipynb  # 탐색적 데이터 분석(EDA) 템플릿
 ├── src/
