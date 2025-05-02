@@ -31,3 +31,8 @@ missingno
 
 # 노트북 환경
 jupyter
+
+# 코드 테스트
+pytest
+black
+lint
