@@ -35,4 +35,8 @@ jupyter
 # 코드 테스트
 pytest
 black
+<<<<<<< HEAD
 lint
+=======
+lint
+>>>>>>> 43c7849c065ff8f070f0507f4f2e8f54616a6c09
