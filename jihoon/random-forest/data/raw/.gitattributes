@@ -1,3 +1,0 @@
-data/train.csv filter=lfs diff=lfs merge=lfs -text
-train.csv filter=lfs diff=lfs merge=lfs -text
-jihoon/random-forest/data/raw/train.csv filter=lfs diff=lfs merge=lfs -text
