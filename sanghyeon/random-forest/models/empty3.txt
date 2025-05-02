@@ -1,0 +1,346 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+import joblib
+import os
+
+class RandomForestModel:
+    """
+    A wrapper class for Random Forest models with functionality for training,
+    evaluating, and making predictions for both classification and regression tasks.
+    """
+    
+    def __init__(self, model_type='classifier', n_estimators=100, random_state=42, **kwargs):
+        """
+        Initialize the Random Forest model.
+        
+        Parameters:
+        -----------
+        model_type : str, default='classifier'
+            Type of random forest model ('classifier' or 'regressor')
+        n_estimators : int, default=100
+            Number of trees in the forest
+        random_state : int, default=42
+            Random seed for reproducibility
+        **kwargs : 
+            Additional parameters to pass to the model constructor
+        """
+        self.model_type = model_type
+        self.n_estimators = n_estimators
+        self.random_state = random_state
+        self.kwargs = kwargs
+        self.model = None
+        self.feature_importances = None
+        
+        # Initialize the appropriate model type
+        if model_type == 'classifier':
+            self.model = RandomForestClassifier(n_estimators=n_estimators, 
+                                               random_state=random_state, 
+                                               **kwargs)
+        elif model_type == 'regressor':
+            self.model = RandomForestRegressor(n_estimators=n_estimators, 
+                                              random_state=random_state, 
+                                              **kwargs)
+        else:
+            raise ValueError("model_type must be either 'classifier' or 'regressor'")
+    
+    def train(self, X, y, test_size=0.2, random_state=None):
+        """
+        Train the random forest model and return the training and test sets.
+        
+        Parameters:
+        -----------
+        X : array-like
+            Features matrix
+        y : array-like
+            Target vector
+        test_size : float, default=0.2
+            Proportion of the dataset to include in the test split
+        random_state : int, default=None
+            Random seed for the train/test split
+            
+        Returns:
+        --------
+        X_train, X_test, y_train, y_test : ndarray
+            Train and test splits
+        """
+        # Split the data
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state or self.random_state
+        )
+        
+        # Train the model
+        self.model.fit(X_train, y_train)
+        
+        # Store feature importances
+        self.feature_importances = pd.DataFrame(
+            {'feature': X.columns if hasattr(X, 'columns') else [f'feature_{i}' for i in range(X.shape[1])],
+             'importance': self.model.feature_importances_}
+        ).sort_values('importance', ascending=False)
+        
+        return X_train, X_test, y_train, y_test
+    
+    def evaluate(self, X_test, y_test):
+        """
+        Evaluate the model performance.
+        
+        Parameters:
+        -----------
+        X_test : array-like
+            Test features
+        y_test : array-like
+            Test targets
+            
+        Returns:
+        --------
+        dict
+            Dictionary with evaluation metrics
+        """
+        y_pred = self.model.predict(X_test)
+        
+        if self.model_type == 'classifier':
+            # For classification tasks
+            accuracy = accuracy_score(y_test, y_pred)
+            
+            # Try to get other metrics if applicable (for binary/multiclass)
+            try:
+                precision = precision_score(y_test, y_pred, average='weighted')
+                recall = recall_score(y_test, y_pred, average='weighted')
+                f1 = f1_score(y_test, y_pred, average='weighted')
+                
+                # Compute confusion matrix
+                cm = confusion_matrix(y_test, y_pred)
+                
+                metrics = {
+                    'accuracy': accuracy,
+                    'precision': precision,
+                    'recall': recall,
+                    'f1_score': f1,
+                    'confusion_matrix': cm
+                }
+            except:
+                # Fallback if some metrics can't be computed
+                metrics = {'accuracy': accuracy}
+                
+        else:
+            # For regression tasks
+            mse = mean_squared_error(y_test, y_pred)
+            rmse = np.sqrt(mse)
+            mae = mean_absolute_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            
+            metrics = {
+                'mse': mse,
+                'rmse': rmse,
+                'mae': mae,
+                'r2_score': r2
+            }
+            
+        return metrics
+    
+    def hyperparameter_tuning(self, X, y, param_grid, cv=5, scoring=None):
+        """
+        Perform hyperparameter tuning using GridSearchCV.
+        
+        Parameters:
+        -----------
+        X : array-like
+            Features matrix
+        y : array-like
+            Target vector
+        param_grid : dict
+            Dictionary with hyperparameters names as keys and lists of parameter settings
+        cv : int, default=5
+            Number of cross-validation folds
+        scoring : str, default=None
+            Scoring metric to use. If None, uses default scoring ('accuracy' for classifier, 'r2' for regressor)
+            
+        Returns:
+        --------
+        dict
+            Dictionary with best parameters and CV results
+        """
+        if scoring is None:
+            scoring = 'accuracy' if self.model_type == 'classifier' else 'r2'
+            
+        grid_search = GridSearchCV(self.model, param_grid, cv=cv, scoring=scoring, n_jobs=-1)
+        grid_search.fit(X, y)
+        
+        # Update the model with the best estimator
+        self.model = grid_search.best_estimator_
+        
+        return {
+            'best_params': grid_search.best_params_,
+            'best_score': grid_search.best_score_,
+            'cv_results': grid_search.cv_results_
+        }
+    
+    def predict(self, X):
+        """
+        Make predictions using the trained model.
+        
+        Parameters:
+        -----------
+        X : array-like
+            Features to predict on
+            
+        Returns:
+        --------
+        array-like
+            Predictions
+        """
+        if self.model is None:
+            raise ValueError("Model has not been trained yet. Call the train method first.")
+            
+        return self.model.predict(X)
+    
+    def predict_proba(self, X):
+        """
+        Get probability estimates (only for classification).
+        
+        Parameters:
+        -----------
+        X : array-like
+            Features to predict on
+            
+        Returns:
+        --------
+        array-like
+            Probability estimates
+        """
+        if self.model_type != 'classifier':
+            raise ValueError("predict_proba is only available for classification models")
+            
+        if self.model is None:
+            raise ValueError("Model has not been trained yet. Call the train method first.")
+            
+        return self.model.predict_proba(X)
+    
+    def plot_feature_importance(self, top_n=10, figsize=(10, 6)):
+        """
+        Plot feature importances.
+        
+        Parameters:
+        -----------
+        top_n : int, default=10
+            Number of top features to show
+        figsize : tuple, default=(10, 6)
+            Figure size
+            
+        Returns:
+        --------
+        matplotlib.figure.Figure
+            The created figure
+        """
+        if self.feature_importances is None:
+            raise ValueError("Feature importances not available. Train the model first.")
+            
+        plt.figure(figsize=figsize)
+        sns.barplot(
+            x='importance', 
+            y='feature', 
+            data=self.feature_importances.head(top_n)
+        )
+        plt.title(f'Top {top_n} Feature Importances')
+        plt.tight_layout()
+        
+        return plt.gcf()
+    
+    def save_model(self, filepath):
+        """
+        Save the trained model to disk.
+        
+        Parameters:
+        -----------
+        filepath : str
+            Path to save the model to
+        """
+        if self.model is None:
+            raise ValueError("Model has not been trained yet. Call the train method first.")
+            
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        
+        # Save the model
+        joblib.dump(self.model, filepath)
+        print(f"Model saved to {filepath}")
+    
+    @classmethod
+    def load_model(cls, filepath):
+        """
+        Load a trained model from disk.
+        
+        Parameters:
+        -----------
+        filepath : str
+            Path to load the model from
+            
+        Returns:
+        --------
+        RandomForestModel
+            Instance with loaded model
+        """
+        # Determine model type based on loaded model
+        loaded_model = joblib.load(filepath)
+        
+        if isinstance(loaded_model, RandomForestClassifier):
+            model_type = 'classifier'
+        elif isinstance(loaded_model, RandomForestRegressor):
+            model_type = 'regressor'
+        else:
+            raise ValueError("Loaded model is not a RandomForestClassifier or RandomForestRegressor")
+        
+        # Create instance and assign the loaded model
+        instance = cls(model_type=model_type)
+        instance.model = loaded_model
+        
+        print(f"Model loaded from {filepath}")
+        return instance
+
+
+# Example usage
+if __name__ == "__main__":
+    # Sample data (replace with actual data loading)
+    # For classification
+    from sklearn.datasets import load_iris
+    
+    # Load sample dataset
+    iris = load_iris()
+    X = pd.DataFrame(iris.data, columns=iris.feature_names)
+    y = iris.target
+    
+    # Initialize and train the model
+    rf_model = RandomForestModel(model_type='classifier', n_estimators=100, max_depth=5)
+    X_train, X_test, y_train, y_test = rf_model.train(X, y, test_size=0.3)
+    
+    # Evaluate the model
+    metrics = rf_model.evaluate(X_test, y_test)
+    print("Classification Metrics:")
+    for metric, value in metrics.items():
+        if metric != 'confusion_matrix':
+            print(f"{metric}: {value:.4f}")
+    
+    # Plot feature importance
+    rf_model.plot_feature_importance()
+    plt.show()
+    
+    # Hyperparameter tuning example
+    param_grid = {
+        'n_estimators': [50, 100, 150],
+        'max_depth': [None, 10, 20],
+        'min_samples_split': [2, 5, 10]
+    }
+    
+    # Uncomment to run hyperparameter tuning (can be time-consuming)
+    # tuning_results = rf_model.hyperparameter_tuning(X, y, param_grid)
+    # print(f"Best parameters: {tuning_results['best_params']}")
+    
+    # Save the model
+    # rf_model.save_model('models/random_forest_iris.joblib')
+    
+    print("\nRandom Forest model implementation complete!") 
