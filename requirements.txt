@@ -1,42 +1,8 @@
-# 데이터 핸들링
-pandas
-numpy
-
-# 머신러닝
-scikit-learn
-xgboost
-lightgbm
-
-# 딥러닝
-tensorflow
-
-# 시계열 분석
-prophet
-
-# 통계 분석
-scipy
-statsmodels
-
-# 범주형 인코딩
-category_encoders
-
-# 모델 해석
-shap
-
-# 시각화
-matplotlib
-seaborn
-plotly
-missingno
-
-# 노트북 환경
-jupyter
-
-# 코드 테스트
-pytest
-black
-<<<<<<< HEAD
-lint
-=======
-lint
->>>>>>> 43c7849c065ff8f070f0507f4f2e8f54616a6c09
+matplotlib==3.7.1
+numpy==1.23.5
+pandas==1.5.3
+scipy==1.11.3
+seaborn==0.12.2
+scikit-learn==1.2.2
+statsmodels==0.14.0
+tqdm==4.66.1

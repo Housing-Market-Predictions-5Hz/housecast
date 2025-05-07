@@ -144,3 +144,66 @@ Sessionx.vim
 *~
 tags
 [._]*.un~
+
+raw
+
+# Python 가상 환경
+venv/
+env/
+.venv/
+.env/
+
+# 각 모델 디렉토리 내의 가상 환경
+*/*/venv/
+
+# Python 캐시 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 분포 / 패키징
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# 로그
+*.log
+
+# 데이터베이스
+*.sqlite
+
+# 운영체제 관련 파일
+.DS_Store
+Thumbs.db
+
+# 학습된 모델 파일 (필요에 따라 주석 처리)
+*.pkl
+*.h5
+*.model
+*.joblib
+
+# 대용량 출력 파일과 모델 디렉토리
+*/*/output/
+*/*/models/*.pkl
+*/*/models/*.joblib
+*/*/models/*.h5
+
+# 로컬 설정 파일
+config.ini
