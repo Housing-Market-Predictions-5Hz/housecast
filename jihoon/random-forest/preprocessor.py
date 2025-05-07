@@ -181,7 +181,11 @@ def preprocess_data(train_data, test_data, bus_data, subway_data):
     # 데이터 분리
     train_processed = combined_df[combined_df['is_test'] == 0].drop('is_test', axis=1)
     test_processed = combined_df[combined_df['is_test'] == 1].drop('is_test', axis=1)
-    
+
+    # NaN 제거
+    train_processed = train_processed.fillna(0)
+    test_processed = test_processed.fillna(0)
+
     X_train = train_processed.values
     X_test = test_processed.values
     

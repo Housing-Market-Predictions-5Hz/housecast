@@ -20,7 +20,7 @@ def load_data():
         tuple: (train_data, test_data, bus_data, subway_data)
     """
     # 파일 경로 설정 - 상대 경로 사용 (../../raw/)
-    raw_dir = os.path.join('..', '..', 'raw')
+    raw_dir = os.path.join('..', 'data')
     train_path = os.path.join(raw_dir, 'train.csv')
     test_path = os.path.join(raw_dir, 'test.csv')
     bus_path = os.path.join(raw_dir, 'bus_feature.csv')

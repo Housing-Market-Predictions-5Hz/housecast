@@ -80,7 +80,7 @@ def main():
     
     # 제출 파일 생성
     print("7. 제출 파일 생성 중...")
-    sample_submission = pd.read_csv('../../raw/sample_submission.csv')
+    sample_submission = pd.read_csv('../data/sample_submission.csv')
     sample_submission['target'] = predictions
     
     # float가 아닌 integer 타입으로 저장
