@@ -199,6 +199,12 @@ Thumbs.db
 *.model
 *.joblib
 
+# 대용량 데이터 및 다운로드 파일
+*.tar
+*.zip
+*.csv
+*.xlsx
+
 # 대용량 출력 파일과 모델 디렉토리
 */*/output/
 */*/models/*.pkl
