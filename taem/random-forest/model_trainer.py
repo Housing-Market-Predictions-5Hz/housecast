@@ -14,7 +14,7 @@ import time
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
-def train_model(X_train, y_train, tune_hyperparams=False):
+def train_model(X_train, y_train, tune_hyperparams=False, simple_experiment=False):
     """
     Random Forest 모델을 훈련하는 함수
     
@@ -22,9 +22,10 @@ def train_model(X_train, y_train, tune_hyperparams=False):
         X_train (np.ndarray): 훈련 데이터의 특성 행렬
         y_train (np.ndarray): 훈련 데이터의 타겟 값
         tune_hyperparams (bool): 하이퍼파라미터 튜닝 여부
+        simple_experiment (bool): 간단한 트리 수 실험 여부
         
     Returns:
-        tuple: (trained_model, feature_importance)
+        tuple: (trained_model, feature_importance) 또는 실험 결과
     """
     print("Random Forest 모델 훈련 시작...")
     start_time = time.time()
@@ -39,27 +40,84 @@ def train_model(X_train, y_train, tune_hyperparams=False):
     else:
         X_train_df = X_train
     
-    if tune_hyperparams:
+    if simple_experiment:
+        print("다양한 트리 수에 대한 간단한 실험 시작...")
+        from sklearn.model_selection import cross_val_score
+        import matplotlib.pyplot as plt
+        
+        # 실험할 트리 수 범위
+        n_estimators_list = [5, 10, 15, 20, 50, 100]
+        cv_scores = []
+        
+        for n_est in n_estimators_list:
+            print(f"n_estimators={n_est} 테스트 중...")
+            model = RandomForestRegressor(
+                n_estimators=n_est,
+                criterion='squared_error',
+                min_samples_split=10,
+                min_samples_leaf=2,
+                max_features='sqrt',
+                random_state=1,
+                n_jobs=-1
+            )
+            scores = cross_val_score(model, X_train, y_train, cv=3, scoring='r2')
+            mean_score = scores.mean()
+            cv_scores.append(mean_score)
+            print(f"  평균 CV 점수: {mean_score:.4f}")
+        
+        # 트리 수에 따른 성능 시각화
+        plt.figure(figsize=(10, 6))
+        plt.plot(n_estimators_list, cv_scores, marker='o', linestyle='-')
+        plt.xlabel('트리 수 (n_estimators)')
+        plt.ylabel('교차 검증 R2 점수')
+        plt.title('트리 수에 따른 랜덤 포레스트 성능')
+        plt.grid(True)
+        plt.savefig('output/n_estimators_experiment.png')
+        print(f"실험 결과 그래프가 output/n_estimators_experiment.png에 저장되었습니다.")
+        
+        # 최적의 트리 수 선택
+        best_idx = cv_scores.index(max(cv_scores))
+        best_n_estimators = n_estimators_list[best_idx]
+        print(f"\n최적의 트리 수: {best_n_estimators} (CV 점수: {max(cv_scores):.4f})")
+        
+        # 최적의 트리 수로 최종 모델 훈련
+        model = RandomForestRegressor(
+            n_estimators=best_n_estimators,
+            criterion='squared_error',
+            min_samples_split=10,
+            min_samples_leaf=2,
+            max_features='sqrt',
+            random_state=1,
+            n_jobs=-1
+        )
+        model.fit(X_train, y_train)
+        
+        return model, pd.DataFrame({
+            'n_estimators': n_estimators_list,
+            'cv_score': cv_scores
+        })
+    
+    elif tune_hyperparams:
         print("하이퍼파라미터 튜닝 시작...")
         
-        # RandomizedSearchCV를 이용한 하이퍼파라미터 튜닝
+        # RandomizedSearchCV를 이용한 하이퍼파라미터 튜닝 - 메모리 사용 최적화
         param_grid = {
-            'n_estimators': [100, 200, 300, 500],
-            'max_depth': [None, 10, 20, 30, 40, 50],
+            'n_estimators': [100, 200, 300],
+            'max_depth': [None, 10, 20, 30],
             'min_samples_split': [2, 5, 10],
             'min_samples_leaf': [1, 2, 4],
-            'max_features': ['sqrt', 'log2', None]
+            'max_features': ['sqrt', 'log2']
         }
         
         rf = RandomForestRegressor(random_state=42)
         random_search = RandomizedSearchCV(
             estimator=rf,
             param_distributions=param_grid,
-            n_iter=20,
-            cv=3,
+            n_iter=10,
+            cv=2,
             verbose=1,
             random_state=42,
-            n_jobs=-1
+            n_jobs=2
         )
         
         random_search.fit(X_train, y_train)
@@ -69,16 +127,16 @@ def train_model(X_train, y_train, tune_hyperparams=False):
         print(f"최적 CV 점수: {random_search.best_score_:.4f}")
     else:
         # 기본 하이퍼파라미터로 모델 훈련
-        # model = RandomForestRegressor(
-        #     n_estimators=300,
-        #     max_depth=None,
-        #     min_samples_split=2,
-        #     min_samples_leaf=1,
-        #     max_features='sqrt',
-        #     n_jobs=-1,
-        #     random_state=42
-        # )
-        model = RandomForestRegressor(n_estimators=5, criterion='squared_error', random_state=1, n_jobs=-1)
+        model = RandomForestRegressor(
+            n_estimators=5,
+            criterion='squared_error',
+            max_depth=None,
+            min_samples_split=2,
+            min_samples_leaf=1,
+            max_features='sqrt',
+            n_jobs=-1,
+            random_state=1
+        )
         model.fit(X_train, y_train)
     
     end_time = time.time()
@@ -129,7 +187,7 @@ if __name__ == "__main__":
     train_data, test_data, bus_data, subway_data = load_data()
     X_train, y_train, X_test, processed_data = preprocess_data(train_data, test_data, bus_data, subway_data)
     
-    # 모델 훈련 테스트
+    # 모델 훈련 테스트 - 간단한 모델 사용
     model, feature_importance = train_model(X_train, y_train, tune_hyperparams=False)
     
     # 특성 중요도 확인
