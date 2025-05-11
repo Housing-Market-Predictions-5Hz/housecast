@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from math import radians, cos, sin, asin, sqrt
 from preprocessor.column_tags import TAGS
+from sklearn.preprocessing import LabelEncoder
+from preprocessor.encoding_utils import frequency_encode, target_encode
 
 CURRENT_YEAR = 2023
 GANGNAM_CENTER_X = 203731
@@ -35,7 +37,7 @@ def load_data(train_path, test_path, bus_path, subway_path, submission_path):
     sample_submission = pd.read_csv(submission_path)
     return train, test, bus, subway, sample_submission
 
-def preprocess_data(train, test, bus, subway):
+def preprocess_data(train, test, bus, subway, encoding="label"):
     train["is_train"] = 1
     test["is_train"] = 0
     test["target"] = np.nan
@@ -44,21 +46,40 @@ def preprocess_data(train, test, bus, subway):
     for col, tag in TAGS.items():
         if col not in combined.columns:
             continue
+
         if tag == "drop":
             combined.drop(columns=col, inplace=True)
+
         elif tag == "flag":
             combined[f"is_na_{col}"] = combined[col].isnull().astype(int)
             combined.drop(columns=col, inplace=True)
+
         elif tag == "impute":
             if combined[col].dtype == 'object':
                 combined[col].fillna("미상", inplace=True)
             else:
                 combined[col].fillna(combined[col].median(), inplace=True)
+
         elif tag == "coord":
             combined[col].fillna(0, inplace=True)
+
         elif tag == "categorical":
             combined[col] = combined[col].fillna("미상")
-            combined[col] = combined[col].astype("category").cat.codes
+
+            if encoding == "label":
+                le = LabelEncoder()
+                combined[col] = le.fit_transform(combined[col].astype(str))
+
+            elif encoding == "frequency":
+                combined[col] = frequency_encode(combined, col)
+
+            elif encoding == "target":
+                if combined["target"].isnull().all():
+                    raise ValueError("Target encoding requires target values in training data.")
+                combined[col] = target_encode(combined, col, combined["target"])
+
+            else:
+                raise ValueError(f"Unknown encoding method: {encoding}")
 
     if "좌표X" in combined.columns and "좌표Y" in combined.columns:
         combined["distance_from_gangnam_center"] = np.sqrt(
@@ -76,9 +97,12 @@ def preprocess_data(train, test, bus, subway):
         combined["floor_x_area"] = combined["층"] * combined["전용면적(㎡)"]
 
     if "시군구" in combined.columns:
-        lead_df = pd.DataFrame([
-            {"시군구": k, "대장Y": v[0], "대장X": v[1]} for k, v in LEAD_HOUSE_COORDS.items()
-        ])
+        lead_df = pd.DataFrame([{"시군구": k, "대장Y": v[0], "대장X": v[1]} for k, v in LEAD_HOUSE_COORDS.items()])
+        
+        # 💡 타입 일치 처리
+        combined["시군구"] = combined["시군구"].astype(str)
+        lead_df["시군구"] = lead_df["시군구"].astype(str)
+
         combined = pd.merge(combined, lead_df, how="left", on="시군구")
         combined["distance_from_leading_apt"] = combined.apply(
             lambda row: haversine(row["좌표Y"], row["좌표X"], row["대장Y"], row["대장X"]), axis=1
