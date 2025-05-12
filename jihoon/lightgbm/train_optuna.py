@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error
 import joblib
 import os
 
-from preprocessor.preprocessor_full import load_data, preprocess_data
+from preprocessor.preprocessor_enhanced import load_data, preprocess_data
 
 # ✅ 컬럼명 정제 함수 (중복 방지 포함)
 def clean_column_names(df):
@@ -23,6 +23,15 @@ def clean_column_names(df):
             seen[col] += 1
             new_cols.append(f"{col}_{seen[col]-1}")
     df.columns = new_cols
+    return df
+
+# ✅ object 타입 컬럼 numeric으로 자동 변환
+def ensure_numeric(df):
+    bad_cols = df.select_dtypes(include=["object"]).columns.tolist()
+    if bad_cols:
+        print(f"⚠️ object 타입 컬럼 자동 변환: {bad_cols}")
+        for col in bad_cols:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
     return df
 
 # 경로 설정
@@ -48,6 +57,10 @@ def prepare_data():
 
     X = train_processed.drop(columns=["target"])
     y = train_processed["target"]
+
+    X = ensure_numeric(X)
+    test_processed = ensure_numeric(test_processed)
+
     return X, y, test_processed, submission
 
 X, y, X_test, submission = prepare_data()
@@ -85,7 +98,7 @@ def objective(trial):
 
 # 튜닝 실행
 study = optuna.create_study(direction="minimize")
-study.optimize(objective, n_trials=50)
+study.optimize(objective, n_trials=200)
 
 # 최적 파라미터 및 모델 저장
 best_params = study.best_trial.params
