@@ -1,0 +1,230 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+*.icloud
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.stackdump
+*.lnk
+
+# Visual Studio Code
+.vscode/
+.history/
+.ionide
+*.vsix
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+*.mo
+*.pot
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+instance/
+.webassets-cache
+.scrapy
+docs/_build/
+.pybuilder/
+target/
+profile_default/
+ipython_config.py
+.python-version
+Pipfile.lock
+poetry.lock
+pdm.lock
+.pdm.toml
+__pypackages__/
+celerybeat-schedule
+celerybeat.pid
+*.sage.py
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.spyderproject
+.spyproject
+.ropeproject
+/site
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+.ruff_cache/
+pyrightconfig.json
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# PyCharm
+.idea/
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+*~
+tags
+[._]*.un~
+
+raw
+
+# Python 가상 환경
+venv/
+env/
+.venv/
+.env/
+
+# 각 모델 디렉토리 내의 가상 환경
+*/*/venv/
+
+# Python 캐시 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 분포 / 패키징
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# 로그
+*.log
+
+# 데이터베이스
+*.sqlite
+
+# 운영체제 관련 파일
+.DS_Store
+Thumbs.db
+
+# 학습된 모델 파일 (필요에 따라 주석 처리)
+*.pkl
+*.h5
+*.model
+*.joblib
+
+# 대용량 데이터 및 다운로드 파일
+*.tar
+*.zip
+*.csv
+*.xlsx
+
+# 대용량 출력 파일과 모델 디렉토리
+*/*/output/
+*/*/models/*.pkl
+*/*/models/*.joblib
+*/*/models/*.h5
+
+# 로컬 설정 파일
+config.ini
+
+# Autogluon 결과물
+output/
+output_autogluon.csv
+output/**
+
+# 예측 결과 파일
+*.csv
+
+# 모델 및 추론 결과
+*.pkl
+*.json
+
+# 로컬 실행 시 생긴 base_preds 저장 디렉토리
+base_preds/
