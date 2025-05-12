@@ -12,7 +12,8 @@ import pandas as pd
 import numpy as np
 import time
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, KFold
+from sklearn.metrics import mean_squared_error
 
 def train_model(X_train, y_train, tune_hyperparams=False):
     """
@@ -99,6 +100,49 @@ def train_model(X_train, y_train, tune_hyperparams=False):
     
     return model, feature_importance
 
+def train_model_with_kfold(X, y, n_splits=5):
+    """
+    K-Fold 교차 검증을 사용하여 Random Forest 모델을 훈련하는 함수
+    
+    Args:
+        X (pd.DataFrame or np.ndarray): 전체 데이터의 특성 행렬
+        y (pd.Series or np.ndarray): 전체 데이터의 타겟 값
+        n_splits (int): K-Fold의 분할 수
+        
+    Returns:
+        list: 각 Fold의 성능 지표 (RMSE)
+    """
+    print("K-Fold 교차 검증 시작...")
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    fold_results = []
+    
+    for fold, (train_idx, val_idx) in enumerate(kf.split(X)):
+        print(f"\nFold {fold + 1}/{n_splits}")
+        
+        # 데이터 분할
+        X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
+        y_train, y_val = y[train_idx], y[val_idx]
+        
+        # 모델 초기화
+        model = RandomForestRegressor(random_state=42)
+        
+        # 모델 훈련
+        model.fit(X_train, y_train)
+        
+        # 검증 데이터 예측
+        y_val_pred = model.predict(X_val)
+        
+        # RMSE 계산 (squared=False 대신 수동 계산)
+        mse = mean_squared_error(y_val, y_val_pred)
+        rmse = np.sqrt(mse)
+        fold_results.append(rmse)
+        
+        print(f"Fold {fold + 1} RMSE: {rmse:.4f}")
+    
+    print("\nK-Fold 교차 검증 완료!")
+    print(f"평균 RMSE: {np.mean(fold_results):.4f}")
+    return fold_results
+
 def save_feature_importance_plot(feature_importance, output_path='output/feature_importance.png'):
     """
     특성 중요도를 시각화하여 저장하는 함수
@@ -137,4 +181,4 @@ if __name__ == "__main__":
     print(feature_importance.head(10))
     
     # 특성 중요도 시각화 저장
-    save_feature_importance_plot(feature_importance) 
+    save_feature_importance_plot(feature_importance)

@@ -45,13 +45,13 @@ def main():
 
     # 데이터 전처리
     print("2. 데이터 전처리 중...")
-    X_train, y_train, X_test, processed_data = preprocess_data(train_data, test_data, bus_data, subway_data)
+    X_train, y_train, X_test = preprocess_data(train_data, test_data, bus_data, subway_data)
     print(f"   - 전처리 후 훈련 데이터 크기: {X_train.shape}")
     print(f"   - 전처리 후 테스트 데이터 크기: {X_test.shape}")
     
     # 중요 정보 저장
-    processed_data['X_train'].to_csv('output/X_train_processed.csv', index=False)
-    processed_data['X_test'].to_csv('output/X_test_processed.csv', index=False)
+    pd.DataFrame(X_train).to_csv('output/X_train_processed.csv', index=False)
+    pd.DataFrame(X_test).to_csv('output/X_test_processed.csv', index=False)
     pd.DataFrame(y_train, columns=['target']).to_csv('output/y_train.csv', index=False)
     
     # 모델 훈련
@@ -100,4 +100,4 @@ def main():
     print(f"제출용 파일: output/output.csv (정수형 값으로 저장됨)")
 
 if __name__ == "__main__":
-    main() 
+    main()
