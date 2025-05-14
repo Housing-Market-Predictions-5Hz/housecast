@@ -1,29 +1,14 @@
-# ✅ Target Encoding 함수 추가
+# 개선된 전처리 코드 (기존 기능 + 유재성님 참고 Feature 추가)
 
-def apply_target_encoding(train_df, test_df, col_name, target_name="target"):
-    target_map = train_df.groupby(col_name)[target_name].mean()
-    global_mean = train_df[target_name].mean()
-
-    train_encoded = train_df[col_name].map(target_map).fillna(global_mean)
-    test_encoded = test_df[col_name].map(target_map).fillna(global_mean)
-
-    new_col = f"{col_name}_te"
-    train_df[new_col] = train_encoded
-    test_df[new_col] = test_encoded
-    return train_df, test_df
-
-# 기존 코드 유지
 import pandas as pd
 import numpy as np
-from sklearn.neighbors import BallTree
+from sklearn.neighbors import BallTree, NearestNeighbors
 from preprocessor.column_tags import TAGS
-from sklearn.model_selection import KFold
 
 CURRENT_YEAR = 2023
 GANGNAM_CENTER_X = 203731
 GANGNAM_CENTER_Y = 452331
 EARTH_RADIUS = 6371  # km
-
 
 def coord_cols(df):
     return np.deg2rad(df[['lat', 'lng']].values)
@@ -33,12 +18,6 @@ def build_ball_tree(df):
     return BallTree(coords, metric='haversine')
 
 def add_transport_features(df, bus_df, subway_df, radius_km):
-    for name, df_temp in [('bus', bus_df), ('subway', subway_df)]:
-        if 'X좌표' in df_temp.columns and 'Y좌표' in df_temp.columns:
-            df_temp.rename(columns={"X좌표": "lng", "Y좌표": "lat"}, inplace=True)
-        elif '경도' in df_temp.columns and '위도' in df_temp.columns:
-            df_temp.rename(columns={"경도": "lng", "위도": "lat"}, inplace=True)
-
     if "lat" not in df.columns or "lng" not in df.columns:
         df["num_subway_1km"] = 0
         df["num_bus_1km"] = 0
@@ -56,7 +35,6 @@ def add_transport_features(df, bus_df, subway_df, radius_km):
 
     df = df.merge(df_coords[["num_subway_1km", "num_bus_1km"]], left_index=True, right_index=True, how="left")
     df[["num_subway_1km", "num_bus_1km"]] = df[["num_subway_1km", "num_bus_1km"]].fillna(0)
-    df["교통_총밀도"] = df["num_subway_1km"] + df["num_bus_1km"]
     return df
 
 def load_complex_code(path="data/Complex Code_20221129.xlsx"):
@@ -77,24 +55,16 @@ def bin_floor(x):
     else: return '고층'
 
 def load_bdong(path="data/latlng_bdong.csv"):
-    df = pd.read_csv(path)
-    df = df.rename(columns={"위도": "lat", "경도": "lng"})
-    df['시군구_매핑키'] = df['시군구'].astype(str) + ' ' + df['법정동'].astype(str)
-    return df
+    return pd.read_csv(path)
 
-def map_latlng_by_sigungu(df, bdong_df):
-    df = df.merge(bdong_df[['시군구_매핑키', 'lat', 'lng']], 
-                  left_on='시군구', right_on='시군구_매핑키', how='left')
-    df = df.drop(columns=['시군구_매핑키'])
+def map_nearest_bdong(df, bdong_df):
+    if {'좌표X', '좌표Y'}.issubset(df.columns):
+        coords = df[['좌표Y', '좌표X']].to_numpy()
+        nbrs = NearestNeighbors(n_neighbors=1).fit(bdong_df[['위도', '경도']])
+        distances, indices = nbrs.kneighbors(coords)
+        df['법정동'] = bdong_df.iloc[indices.flatten()]['동'].values
+        df['법정동코드'] = bdong_df.iloc[indices.flatten()]['법정동코드'].values
     return df
-
-def load_data(train_path, test_path, bus_path, subway_path, submission_path):
-    train = pd.read_csv(train_path, low_memory=False)
-    test = pd.read_csv(test_path, low_memory=False)
-    bus = pd.read_csv(bus_path)
-    subway = pd.read_csv(subway_path)
-    submission = pd.read_csv(submission_path)
-    return train, test, bus, subway, submission
 
 def preprocess_enhanced(train, test, bus, subway, radius_km=1.0):
     train["is_train"] = 1
@@ -109,17 +79,12 @@ def preprocess_enhanced(train, test, bus, subway, radius_km=1.0):
     if "단지코드" not in combined.columns:
         raise KeyError("❌ '단지코드' 컬럼 누락 → 외부 매핑 확인 필요")
 
+    # 아파트명 정제 및 인코딩
     if '아파트명' in combined.columns:
         combined['아파트명'] = combined['아파트명'].str.replace(r"\(.+\)", "", regex=True).str.strip()
-        brand_mapping = {
-            '래미안': '래미안', '자이': '자이', '푸르지오': '푸르지오', '이편한': '이편한', 'e편한': '이편한',
-            '힐스테이트': '힐스테이트', '아이파크': '아이파크', '더샵': '더샵', '롯데캐슬': '롯데캐슬',
-            'SK': 'SK', 'sk': 'SK', '에스케이': 'SK', '데시앙': '데시앙'
-        }
-        for keyword, brand in brand_mapping.items():
-            combined.loc[combined['아파트명'].str.contains(keyword, case=False, na=False), '아파트명'] = brand
         combined['아파트명_인코딩'] = combined['아파트명'].astype("category").cat.codes
 
+    # 계약일자 파생
     if {'계약년월', '계약일'}.issubset(combined.columns):
         combined['계약일자'] = pd.to_datetime(
             combined['계약년월'].astype(str) + combined['계약일'].astype(str).str.zfill(2),
@@ -127,12 +92,10 @@ def preprocess_enhanced(train, test, bus, subway, radius_km=1.0):
         )
         combined['계약_월'] = combined['계약일자'].dt.month.fillna(0).astype(int)
         combined['계약_계절'] = (combined['계약일자'].dt.month % 12 // 3 + 1).fillna(0).astype(int)
-        combined['계약_연'] = combined['계약일자'].dt.year.fillna(0).astype(int)
-        combined['계약_일자'] = combined['계약일자'].dt.day.fillna(0).astype(int)
-        combined = combined.drop(columns=['계약일자'])
 
+    # 좌표 기반 법정동 매핑
     bdong_df = load_bdong()
-    combined = map_latlng_by_sigungu(combined, bdong_df)
+    combined = map_nearest_bdong(combined, bdong_df)
 
     for col, tag in TAGS.items():
         if col not in combined.columns:
@@ -162,12 +125,12 @@ def preprocess_enhanced(train, test, bus, subway, radius_km=1.0):
 
     if "전용면적(㎡)" in combined.columns:
         combined["전용면적_bin"] = combined["전용면적(㎡)"].apply(bin_area).astype("category").cat.codes
+        combined["log_area"] = np.log1p(combined["전용면적(㎡)"])
 
     if "층" in combined.columns:
         combined["층수_bin"] = combined["층"].apply(bin_floor).astype("category").cat.codes
         if "전용면적(㎡)" in combined.columns:
             combined["floor_x_area"] = combined["층"] * combined["전용면적(㎡)"]
-        combined["층수_면적_비율"] = combined["층"] / (combined["전용면적(㎡)"] + 1e-3)
 
     if "좌표X" in combined.columns and "좌표Y" in combined.columns:
         combined["distance_from_gangnam_center"] = np.sqrt(
@@ -175,32 +138,19 @@ def preprocess_enhanced(train, test, bus, subway, radius_km=1.0):
         )
 
     if "시군구" in combined.columns and "단지코드" in combined.columns:
-        combined["시군구_단지"] = (combined["시군구"].astype(str) + "_" + combined["단지코드"].astype(str))
-        combined["시군구_단지"] = combined["시군구_단지"].astype("category").cat.codes
+        combined["시군구_단지"] = (combined["시군구"].astype(str) + "_" + combined["단지코드"].astype(str))\
+            .astype("category").cat.codes
+
+    if "target" in combined.columns:
+        mean_target = combined[combined["is_train"] == 1].groupby("단지코드")["target"].mean()
+        combined["단지별_평균가"] = combined["단지코드"].map(mean_target)
+        combined["단지별_평균가"] = combined["단지별_평균가"].fillna(combined["단지별_평균가"].median())
+        combined["면적당_가격"] = combined["target"] / (combined["전용면적(㎡)"] + 1)
 
     if "lat" in combined.columns and "lng" in combined.columns:
         combined = add_transport_features(combined, bus, subway, radius_km)
 
     train_processed = combined[combined["is_train"] == 1].drop(columns=["is_train"])
     test_processed = combined[combined["is_train"] == 0].drop(columns=["is_train", "target"])
-
-    # ✅ Target Encoding 적용 대상
-    target_cols = ["시군구_단지", "아파트명_인코딩", "전용면적_bin"]
-    for col in target_cols:
-        train_processed, test_processed = apply_target_encoding(train_processed, test_processed, col)
-
-    # ✅ 기존 cat.codes 컬럼 제거
-    drop_cols = ["시군구_단지", "아파트명_인코딩", "전용면적_bin", "계약_일자", "계약_계절", "계약_월_te", "계약_연_te",
-                 "전용면적_bin_te", "전용면적(㎡)_te", "층_te", "층수_bin_te"]
-    for col in drop_cols:
-        if col in train_processed.columns:
-            train_processed = train_processed.drop(columns=col)
-        if col in test_processed.columns:
-            test_processed = test_processed.drop(columns=col)
-
-    # ✅ 단지별 평균 거래가 (target leakage 방지)
-    단지평균 = train_processed.groupby("단지코드")["target"].mean()
-    train_processed["단지별_평균거래가_te"] = train_processed["단지코드"].map(단지평균)
-    test_processed["단지별_평균거래가_te"] = test_processed["단지코드"].map(단지평균).fillna(단지평균.mean())
 
     return train_processed, test_processed, bus, subway

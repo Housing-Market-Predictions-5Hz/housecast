@@ -5,6 +5,9 @@ TAGS = {
     "k-등록일자": "drop",
     "단지소개기존clob": "drop",
     "등기신청일자": "drop",  # LightGBM 에러 방지
+    "계약_계절": "drop",
+    "계약_월": "drop",
+    "도로명": "drop",
 
     # ✅ 문자열이지만 중요도 낮음 → 결측 여부만 flag 처리
     "k-홈페이지": "flag",
@@ -24,12 +27,11 @@ TAGS = {
     # ✅ 수치형 결측값 → flag 또는 보간
     "주차대수": "flag",
     "건축면적": "flag",
-    "좌표Y": "coord",  # 파생 변수에 필요
-    "좌표X": "coord",  # 파생 변수에 필요
+    "좌표Y": "coord",
+    "좌표X": "coord",
 
     # ✅ 범주형 인코딩 대상
     "시군구": "categorical",
-    "도로명": "categorical",
     "거래유형": "categorical",
     "중개사소재지": "categorical",
     "k-단지분류(아파트,주상복합등등)": "categorical",
@@ -58,9 +60,9 @@ TAGS = {
     "k-전체세대수": "flag",
 
     # ✅ 반드시 필요한 파생 변수용 컬럼: 절대 drop/flag 하지 말 것
-    "건축년도": "keep",       # building_age 계산용
-    "전용면적(㎡)": "keep",    # 면적 관련 파생 변수
-    "층": "keep",              # floor_x_area 계산용
+    "건축년도": "keep",
+    "전용면적(㎡)": "keep",
+    "층": "keep",
 
     # ✅ 그 외 참조용 또는 보존 컬럼
     "k-도로명주소": "keep",
@@ -98,5 +100,9 @@ TAGS = {
     "단지세대수": "keep",
     "전용면적별세대수": "keep",
     "거래금액(만원)": "keep",
-    "target": "keep"
+    "target": "keep",
+
+    # ✅ 파생 및 위경도
+    "lat": "coord",
+    "lng": "coord"
 }

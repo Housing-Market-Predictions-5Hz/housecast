@@ -1,18 +1,5 @@
-# ✅ Target Encoding 함수 추가
+# 개선된 전처리 코드 (과적합 요소 제거 + 검증 기반 Feature 선택)
 
-def apply_target_encoding(train_df, test_df, col_name, target_name="target"):
-    target_map = train_df.groupby(col_name)[target_name].mean()
-    global_mean = train_df[target_name].mean()
-
-    train_encoded = train_df[col_name].map(target_map).fillna(global_mean)
-    test_encoded = test_df[col_name].map(target_map).fillna(global_mean)
-
-    new_col = f"{col_name}_te"
-    train_df[new_col] = train_encoded
-    test_df[new_col] = test_encoded
-    return train_df, test_df
-
-# 기존 코드 유지
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import BallTree
@@ -167,7 +154,6 @@ def preprocess_enhanced(train, test, bus, subway, radius_km=1.0):
         combined["층수_bin"] = combined["층"].apply(bin_floor).astype("category").cat.codes
         if "전용면적(㎡)" in combined.columns:
             combined["floor_x_area"] = combined["층"] * combined["전용면적(㎡)"]
-        combined["층수_면적_비율"] = combined["층"] / (combined["전용면적(㎡)"] + 1e-3)
 
     if "좌표X" in combined.columns and "좌표Y" in combined.columns:
         combined["distance_from_gangnam_center"] = np.sqrt(
@@ -183,24 +169,5 @@ def preprocess_enhanced(train, test, bus, subway, radius_km=1.0):
 
     train_processed = combined[combined["is_train"] == 1].drop(columns=["is_train"])
     test_processed = combined[combined["is_train"] == 0].drop(columns=["is_train", "target"])
-
-    # ✅ Target Encoding 적용 대상
-    target_cols = ["시군구_단지", "아파트명_인코딩", "전용면적_bin"]
-    for col in target_cols:
-        train_processed, test_processed = apply_target_encoding(train_processed, test_processed, col)
-
-    # ✅ 기존 cat.codes 컬럼 제거
-    drop_cols = ["시군구_단지", "아파트명_인코딩", "전용면적_bin", "계약_일자", "계약_계절", "계약_월_te", "계약_연_te",
-                 "전용면적_bin_te", "전용면적(㎡)_te", "층_te", "층수_bin_te"]
-    for col in drop_cols:
-        if col in train_processed.columns:
-            train_processed = train_processed.drop(columns=col)
-        if col in test_processed.columns:
-            test_processed = test_processed.drop(columns=col)
-
-    # ✅ 단지별 평균 거래가 (target leakage 방지)
-    단지평균 = train_processed.groupby("단지코드")["target"].mean()
-    train_processed["단지별_평균거래가_te"] = train_processed["단지코드"].map(단지평균)
-    test_processed["단지별_평균거래가_te"] = test_processed["단지코드"].map(단지평균).fillna(단지평균.mean())
 
     return train_processed, test_processed, bus, subway
