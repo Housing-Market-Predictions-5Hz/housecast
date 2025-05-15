@@ -82,6 +82,7 @@
 
 ```
 .
+├── .gitignore
 ├── README.md
 ├── config.py
 ├── data

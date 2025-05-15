@@ -1,0 +1,113 @@
+############################################
+# ✅ 운영체제 관련
+############################################
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+############################################
+# ✅ IDE / 에디터
+############################################
+.vscode/
+.idea/
+.history/
+*.code-workspace
+
+############################################
+# ✅ Python 관련 캐시 및 빌드
+############################################
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.log
+*.tmp
+*.bak
+*.swp
+*.db
+*.sqlite
+
+# 빌드 / 배포
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+*.spec
+pip-log.txt
+
+# 가상환경
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+############################################
+# ✅ AutoML / 캐시 / 임시 파일
+############################################
+.cache/
+tmp/
+temp/
+__results__/
+.autogluon/
+autogluon/
+.ipynb_checkpoints/
+.mypy_cache/
+.pytest_cache/
+.dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+.ruff_cache/
+pyrightconfig.json
+
+############################################
+# ✅ Jupyter Notebook
+############################################
+.ipynb_checkpoints/
+
+############################################
+# ✅ 학습된 모델 파일 무시
+############################################
+*.pkl
+*.joblib
+*.model
+*.h5
+
+############################################
+# ✅ 대용량 데이터 파일 무시
+############################################
+*.csv
+*.xlsx
+*.xls
+*.xlsm
+*.feather
+*.parquet
+*.rds
+*.sav
+*.zip
+*.tar
+*.gz
+
+############################################
+# ✅ 실험 결과 / 데이터 폴더 자체 무시
+############################################
+output/
+data/
+
+############################################
+# ✅ 문서 및 주요 코드 파일 유지
+############################################
+!.gitignore
+!README.md
+!requirements.txt
+!config.py
+!main_top25.py
+!run_inference.py
+!preprocessor/
